@@ -1,4 +1,4 @@
-hostnamectl set-hostname isp.au-team.irpo
+hostnamectl set-hostname isp.au-team.irpo; exec bash
 
 
 if ! grep -q "net.ipv4.ip_forward = 1" /etc/sysctl.conf; then
