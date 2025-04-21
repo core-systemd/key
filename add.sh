@@ -1,19 +1,30 @@
 useradd net_admin  -U
 passwd net_admin
 
-if ! grep -q "^net_admin ALL=(ALL) NOPASSWD: ALL" /etc/sudoers; then
-  echo "➕ Добавляем net_admin в sudoers без пароля..."
+insert="net_admin ALL=(ALL) NOPASSWD: ALL"
+target="# %wheel ALL=(ALL) NOPASSWD: ALL"
+
+if ! grep -q "^$insert" /etc/sudoers; then
+  echo "➕ Вставляем строку после '$target'..."
   tmpfile=$(mktemp)
-  cp /etc/sudoers "$tmpfile"
-  echo "net_admin ALL=(ALL) NOPASSWD: ALL" >> "$tmpfile"
+
+  awk -v tgt="$target" -v ins="$insert" '
+    $0 == tgt {
+      print
+      print ins
+      next
+    }
+    { print }
+  ' /etc/sudoers > "$tmpfile"
 
   if visudo -c -f "$tmpfile"; then
     cp "$tmpfile" /etc/sudoers
-    echo "✅ Успешно добавлено!"
+    echo "✅ Строка успешно вставлена!"
   else
     echo "❌ Ошибка синтаксиса в sudoers. Изменения не применены."
   fi
+
   rm -f "$tmpfile"
 else
-  echo "ℹ️ net_admin уже есть в sudoers"
+  echo "ℹ️ Строка уже присутствует в sudoers"
 fi
