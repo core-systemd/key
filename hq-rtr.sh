@@ -1,3 +1,4 @@
+timedatectl set-timezone Europe/Moscow
 useradd net_admin  -U
 passwd net_admin
 
@@ -102,3 +103,4 @@ systemctl restart frr
 
 echo -e "\n[*] Текущая конфигурация OSPF:"
 vtysh -c "show running-config"
+
