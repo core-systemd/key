@@ -1,32 +1,33 @@
 useradd net_admin  -U
 passwd net_admin
 
-insert="net_admin ALL=(ALL) NOPASSWD: ALL"
-target="# %wheel        ALL=(ALL)       NOPASSWD: ALL"
 
-if ! grep -Fxq "$insert" /etc/sudoers; then
-  echo "➕ Вставляем строку после '$target'..."
-  tmpfile=$(mktemp)
 
-  awk -v tgt="$target" -v ins="$insert" '
-    {
-      print
-      if ($0 == tgt) {
-        print ins
-      }
-    }
-  ' /etc/sudoers > "$tmpfile"
+LINE_TO_FIND="# %wheel        ALL=(ALL)       NOPASSWD: ALL"
+NEW_LINE="net_admin ALL=(ALL) NOPASSWD: ALL"
 
-  if visudo -c -f "$tmpfile"; then
-    cp "$tmpfile" /etc/sudoers
-    echo "✅ Строка успешно вставлена!"
-  else
-    echo "❌ Ошибка синтаксиса. Изменения не применены."
-  fi
+if grep -Fxq "$NEW_LINE" /etc/sudoers; then
+  echo "ℹ️ Строка уже существует в sudoers"
+  exit 0
+fi
 
-  rm -f "$tmpfile"
+TMP_FILE=$(mktemp)
+
+awk -v find="$LINE_TO_FIND" -v insert="$NEW_LINE" '
+{
+  print
+  if ($0 == find) {
+    print insert
+  }
+}' /etc/sudoers > "$TMP_FILE"
+
+if visudo -c -f "$TMP_FILE"; then
+  cp "$TMP_FILE" /etc/sudoers
+  echo "✅ Успешно вставлено!"
 else
-  echo "ℹ️ Строка уже есть в sudoers"
+  echo "❌ Ошибка в sudoers! Не трогаем оригинал."
 fi
-  echo "ℹ️ Строка уже есть в sudoers"
-fi
+
+
+rm -f "$TMP_FILE"
+
