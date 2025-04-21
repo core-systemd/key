@@ -3,7 +3,7 @@ if [[ $EUID -ne 0 ]]; then
   exit 1
 fi
 
-hostnamectl set-hostname isp.au-team.irpo
+hostnamectl set-hostname isp.au-team.irpo; exec bash
 
 
 grep -qxF "net.ipv4.ip_forward = 1" /etc/sysctl.conf || echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf
