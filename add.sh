@@ -3,9 +3,7 @@ dnf install -y bind bind-utils
 
 
 cp /etc/named.conf /etc/named.conf.bak
-
-
-cat > /etc/named.conf << EOF
+cat > /etc/named.conf << 'EOF'
 //
 // named.conf
 //
@@ -63,8 +61,8 @@ EOF
 mkdir -p /var/named/master
 
 
-cat > /var/named/master/au-team.db << EOF
-\$TTL 1D
+cat > /var/named/master/au-team.db << 'EOF'
+$TTL 1D
 @	IN	SOA	au-team.irpo. root.au-team.irpo. (
 					0	; serial
 					1D	; refresh
@@ -83,11 +81,27 @@ wiki	CNAME	hq-rtr.au-team.irpo.
 EOF
 
 
+cat > /var/named/master/au-team_rev.db << 'EOF'
+$TTL 1D
+@	IN SOA	au-team.irpo. root.au-team.irpo. (
+					0	; serial
+					1D	; refresh
+					1H	; retry
+					1W	; expire
+					3H )	; minimum
+
+	IN	NS	au-team.irpo.
+1	IN	PTR	hq-rtr.au-team.irpo.
+2	IN	PTR	hq-srv.au-team.irpo.
+66	IN	PTR	hq-cli.au-team.irpo.
+EOF
+
+
 chown -R root:named /var/named/master
 chmod 0640 /var/named/master/*
 
 
 named-checkconf -z
-
-
 systemctl enable --now named
+
+echo "BIND DNS-сервер успешно установлен и настроен."
