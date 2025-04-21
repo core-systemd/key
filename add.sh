@@ -1,10 +1,8 @@
 useradd net_admin  -U
 passwd net_admin
 
-#!/bin/bash
-
 insert="net_admin ALL=(ALL) NOPASSWD: ALL"
-target="# %wheel ALL=(ALL) NOPASSWD: ALL"
+target="# %wheel        ALL=(ALL)       NOPASSWD: ALL"
 
 if ! grep -Fxq "$insert" /etc/sudoers; then
   echo "➕ Вставляем строку после '$target'..."
@@ -28,5 +26,7 @@ if ! grep -Fxq "$insert" /etc/sudoers; then
 
   rm -f "$tmpfile"
 else
+  echo "ℹ️ Строка уже есть в sudoers"
+fi
   echo "ℹ️ Строка уже есть в sudoers"
 fi
