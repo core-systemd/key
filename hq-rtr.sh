@@ -1,11 +1,9 @@
 
 hostnamectl set-hostname hq-rtr.au-team.irpo; exec bash
 
-if ! grep -q "^net.ipv4.ip_forward *= *1" /etc/sysctl.conf; then
+if ! grep -q "net.ipv4.ip_forward = 1" /etc/sysctl.conf; then
     echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf
 fi
-
-
 sysctl -p
 
 
@@ -19,14 +17,9 @@ table inet nat {
 EOF
 
 
-NFTABLES_CONF="/etc/sysconfig/nftables.conf"
-INCLUDE_LINE='include "/etc/nftables/hq-rtr.nft"'
-
-if ! grep -Fxq "$INCLUDE_LINE" "$NFTABLES_CONF"; then
-    echo "$INCLUDE_LINE" >> "$NFTABLES_CONF"
+if ! grep -q 'include "/etc/nftables/hq-rtr.nft"' /etc/sysconfig/nftables.conf; then
+    echo 'include "/etc/nftables/hq-rtr.nft"' >> /etc/sysconfig/nftables.conf
 fi
 
 
 systemctl enable --now nftables
-
-
