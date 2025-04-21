@@ -30,7 +30,7 @@ grep -Fxq "$INCLUDE_LINE" "$NFT_CONF" || echo "$INCLUDE_LINE" >> "$NFT_CONF"
 
 
 systemctl enable --now nftables
-
+nmcli connection modify tun1 ip-tunnel.ttl 64
 echo -e "\n✅ Готово! NAT настроен. Проверь содержимое файла: /etc/nftables/hq-rtr.nft"
 
 
