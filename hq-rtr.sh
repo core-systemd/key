@@ -7,7 +7,7 @@ fi
 sysctl -p
 
 
-cat > /etc/nftables/hq-rtr.nft <<EOF
+sudo tee /etc/nftables/hq-rtr.nft > /dev/null <<EOF
 table inet nat {
     chain POSTROUTING {
         type nat hook postrouting priority srcnat;
