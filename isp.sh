@@ -1,3 +1,5 @@
+timedatectl set-timezone Europe/Moscow
+
 if [[ $EUID -ne 0 ]]; then
   echo "Пожалуйста, запускайте этот скрипт с правами root: sudo $0"
   exit 1
