@@ -23,37 +23,42 @@ fi
 
 
 
-echo "🔧 Перевод SELinux в режим permissive..."
-
-
+echo "[*] Отключаем SELinux (меняем enforcing на permissive)..."
 sed -i 's/^SELINUX=enforcing/SELINUX=permissive/' /etc/selinux/config
 
 
+echo "[*] Временно отключаем SELinux..."
 setenforce 0
 
-echo "✅ SELinux переведён в режим permissive (временно и навсегда)"
+
+echo "[*] Настройка SSH..."
+
+SSH_CONFIG="/etc/ssh/sshd_config"
 
 
-SSH_CONF_DIR="/etc/ssh/sshd_config.d"
-SSH_CUSTOM_CONF="$SSH_CONF_DIR/custom.conf"
-
-echo "🛠️ Настраиваем SSH на порт 2024 только для пользователя net_admin..."
-
-mkdir -p "$SSH_CONF_DIR"
-cat > "$SSH_CUSTOM_CONF" <<EOF
-Port 2024
-AllowUsers net_admin
-Banner /etc/ssh/baner.txt
-MaxAuthTries 2
-EOF
-
-echo "✅ SSH конфигурация добавлена: $SSH_CUSTOM_CONF"
+sed -i 's/^#Port 22/Port 2024/' $SSH_CONFIG
+sed -i 's/^Port .*/Port 2024/' $SSH_CONFIG
 
 
-echo "Authorized access only" > /etc/ssh/baner.txt
-echo "✅ Баннер создан: /etc/ssh/baner.txt"
+if ! grep -q "^AllowUsers" $SSH_CONFIG; then
+  echo "AllowUsers sshuser" >> $SSH_CONFIG
+else
+  sed -i 's/^AllowUsers.*/AllowUsers sshuser/' $SSH_CONFIG
+fi
 
 
-echo "🔁 Перезапускаем SSH..."
-systemctl restart sshd && echo "✅ SSH успешно перезапущен"
+sed -i 's/^#MaxAuthTries.*/MaxAuthTries 2/' $SSH_CONFIG
+sed -i 's/^MaxAuthTries.*/MaxAuthTries 2/' $SSH_CONFIG
+
+
+sed -i 's|^#Banner.*|Banner /etc/ssh-banner|' $SSH_CONFIG
+echo "Authorized access only" > /etc/ssh-banner
+
+
+echo "[*] Перезапуск sshd..."
+systemctl restart sshd
+
+echo "[+] Настройка завершена."
+
+
 
