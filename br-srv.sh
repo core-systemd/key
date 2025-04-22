@@ -1,4 +1,4 @@
-hostnamectl set-hostname hq-srv.au-team.irpo
+hostnamectl set-hostname br-srv.au-team.irpo
 
 useradd sshuser -u 1010 -U
 passwd sshuser
