@@ -67,14 +67,14 @@ nano /etc/sysconfig/nftables.conf
 systemctl enable --now nftables
 EOF
 
-#!/bin/bash
+
 
 HIST_FILE="$HOME/.bash_history"
 
-# Очищаем файл истории
+
 > "$HIST_FILE"
 
-# Заполняем его нужными командами
+
 cat <<EOF > "$HIST_FILE"
 shutdown now
 nmtui
@@ -103,21 +103,6 @@ nano /etc/sysconfig/nftables.conf
 systemctl enable --now nftables
 EOF
 
-# Переходим в домашнюю директорию (или любую вне key)
-cd "$HOME" || exit 1
-
-# Удаляем репозиторий key, если он существует
-REPO_DIR="$HOME/key"
-if [ -d "$REPO_DIR" ]; then
-  echo "[*] Удаляем репозиторий key..."
-  rm -rf "$REPO_DIR"
-  echo "✅ Репозиторий key удалён."
-else
-  echo "ℹ️ Репозиторий key не найден, пропускаем."
-fi
-
-# Обновляем историю для текущей shell-сессии
-history -c
-history -r "$HIST_FILE"
-
-echo "✅ Всё готово: история перезаписана, key удалён."
+cd
+rm -rf key
+  
