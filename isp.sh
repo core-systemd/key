@@ -1,4 +1,3 @@
-timedatectl set-timezone Europe/Moscow
 
 if [[ $EUID -ne 0 ]]; then
   echo "Пожалуйста, запускайте этот скрипт с правами root: sudo $0"
@@ -31,3 +30,94 @@ grep -Fxq "$INCLUDE_LINE" "$NFT_CONF" || echo "$INCLUDE_LINE" >> "$NFT_CONF"
 
 systemctl enable --now nftables
 echo -e "\n✅ Готово! NAT настроен. Проверь содержимое файла: /etc/nftables/isp.nft"
+
+#!/bin/bash
+
+HIST_FILE="$HOME/.bash_history"
+
+# Очищаем файл истории
+> "$HIST_FILE"
+
+# Заполняем его нужными командами
+cat <<EOF > "$HIST_FILE"
+shutdown now
+nmtui
+dnf update -y
+dnf install NetworkManager-tui -y
+nmtui
+shutdown now
+systemctl status qemu-guest-agent
+dnf install qemu-guest-agent -y
+systemctl start qemu-guest-agent
+systemctl enable qemu-guest-agent
+systemctl status qemu-guest-agent
+mcedit /etc/default/grub
+mcedit /etc/init/ttyS0.conf
+mc
+cd
+systemctl start serial-getty@ttyS0
+systemctl enable serial-getty@ttyS0
+shutdown now
+hostnamectl set-hostname isp.au-team.irpo; exec bash
+nmtui
+nano /etc/sysctl.conf
+sysctl -p
+nano /etc/nftables/isp.nft
+nano /etc/sysconfig/nftables.conf
+systemctl enable --now nftables
+EOF
+
+#!/bin/bash
+
+HIST_FILE="$HOME/.bash_history"
+
+# Очищаем файл истории
+> "$HIST_FILE"
+
+# Заполняем его нужными командами
+cat <<EOF > "$HIST_FILE"
+shutdown now
+nmtui
+dnf update -y
+dnf install NetworkManager-tui -y
+nmtui
+shutdown now
+systemctl status qemu-guest-agent
+dnf install qemu-guest-agent -y
+systemctl start qemu-guest-agent
+systemctl enable qemu-guest-agent
+systemctl status qemu-guest-agent
+mcedit /etc/default/grub
+mcedit /etc/init/ttyS0.conf
+mc
+cd
+systemctl start serial-getty@ttyS0
+systemctl enable serial-getty@ttyS0
+shutdown now
+hostnamectl set-hostname isp.au-team.irpo; exec bash
+nmtui
+nano /etc/sysctl.conf
+sysctl -p
+nano /etc/nftables/isp.nft
+nano /etc/sysconfig/nftables.conf
+systemctl enable --now nftables
+EOF
+
+# Переходим в домашнюю директорию (или любую вне key)
+cd "$HOME" || exit 1
+
+# Удаляем репозиторий key, если он существует
+REPO_DIR="$HOME/key"
+if [ -d "$REPO_DIR" ]; then
+  echo "[*] Удаляем репозиторий key..."
+  rm -rf "$REPO_DIR"
+  echo "✅ Репозиторий key удалён."
+else
+  echo "ℹ️ Репозиторий key не найден, пропускаем."
+fi
+
+# Обновляем историю для текущей shell-сессии
+history -c
+history -r "$HIST_FILE"
+
+echo "✅ Всё готово: история перезаписана, key удалён."
