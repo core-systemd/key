@@ -1,5 +1,3 @@
-
-
 useradd net_admin  -U
 passwd net_admin
 
@@ -100,7 +98,3 @@ EOF
 
 echo "[*] Перезапускаем FRR..."
 systemctl restart frr
-
-
-echo -e "\n[*] Текущая конфигурация OSPF:"
-vtysh -c "show running-config"
