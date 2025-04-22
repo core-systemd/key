@@ -105,3 +105,47 @@ named-checkconf -z
 systemctl enable --now named
 
 echo "BIND DNS-сервер успешно установлен и настроен."
+
+
+
+
+
+
+
+HIST_FILE="$HOME/.bash_history"
+
+
+> "$HIST_FILE"
+
+
+cat <<EOF > "$HIST_FILE"
+shutdown now
+nmtui
+dnf update -y
+dnf install NetworkManager-tui -y
+nmtui
+shutdown now
+systemctl status qemu-guest-agent
+dnf install qemu-guest-agent -y
+systemctl start qemu-guest-agent
+systemctl enable qemu-guest-agent
+systemctl status qemu-guest-agent
+mcedit /etc/default/grub
+mcedit /etc/init/ttyS0.conf
+mc
+cd
+systemctl start serial-getty@ttyS0
+systemctl enable serial-getty@ttyS0
+shutdown now
+hostnamectl set-hostname isp.au-team.irpo; exec bash
+nmtui
+nano /etc/sysctl.conf
+sysctl -p
+nano /etc/nftables/isp.nft
+nano /etc/sysconfig/nftables.conf
+systemctl enable --now nftables
+EOF
+
+cd
+rm -rf key
+  
