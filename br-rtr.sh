@@ -1,4 +1,4 @@
-timedatectl set-timezone Europe/Moscow
+
 
 useradd net_admin  -U
 passwd net_admin
