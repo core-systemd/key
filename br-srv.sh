@@ -9,7 +9,7 @@ exec >/dev/null 2>&1
 
 # Проверка прав
 if [[ $EUID -ne 0 ]]; then
-  echo "‼️ Запусти скрипт от root: sudo $0" >&3
+  echo "Запусти скрипт от root: sudo $0" >&3
   exec 1>&3 2>&4
   set -o history
   exit 1
