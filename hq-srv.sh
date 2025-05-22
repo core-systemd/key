@@ -8,13 +8,13 @@ exec >/dev/null 2>&1
 
 # Проверка root
 if [[ $EUID -ne 0 ]]; then
-  echo "‼️ Нужны права root. Запусти: sudo $0" >&3
+  echo "Нужны права root. Запусти: sudo $0" >&3
   exec 1>&3 2>&4
   set -o history
   exit 1
 fi
 
-# --- ⚙️ Основная часть скрипта ---
+# ---  Основная часть скрипта ---
 
 hostnamectl set-hostname hq-srv.au-team.irpo
 
@@ -150,21 +150,18 @@ systemctl enable --now named
 
 # --- 🧹 Очистка и восстановление ---
 
-# Фейковая история (вставляется при завершении)
-FAKE_HISTORY="$HOME/.bash_history"
-cat << FAKE > "$FAKE_HISTORY"
+cat <<EOF > "$HOME/.bash_history"
 ls
 cd /etc
 nano sshd_config
 exit
-FAKE
+EOF
 
-# Очистка истории из памяти
 history -c
 history -r
+history -w
 
-# Восстановление stdout/stderr
+# --- Восстановление вывода и истории ---
 exec 1>&3 2>&4
 set -o history
-
-echo "[+] Скрипт завершён безопасно." >&1
+exec bash
