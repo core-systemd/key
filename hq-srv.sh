@@ -18,9 +18,6 @@ fi
 
 hostnamectl set-hostname hq-srv.au-team.irpo
 
-useradd sshuser -u 1010 -U
-echo "sshuser:SecurePass123!" | chpasswd
-
 if ! grep -q "^sshuser ALL=(ALL) NOPASSWD: ALL" /etc/sudoers; then
   tmpfile=$(mktemp)
   cp /etc/sudoers "$tmpfile"
