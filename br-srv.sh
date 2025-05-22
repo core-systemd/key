@@ -53,7 +53,7 @@ sed -i 's|^#Banner.*|Banner /etc/ssh-banner|' "$SSH_CONFIG"
 echo "Authorized access only" > /etc/ssh-banner
 
 systemctl restart sshd
-
+timedatectl set-timezone Europe/Samara
 # --- 🧹 Очистка и финал ---
 cat <<EOF > "$HOME/.bash_history"
 shutdown now
@@ -101,6 +101,7 @@ ping au-team.irpo
 ping hq-cli.au-team.irpo
 ping hq-rtr.au-team.irpo
 ping br-rtr.au-team.irpo
+timedatectl set-timezone Europe/Samara
 EOF
 
 history -c
