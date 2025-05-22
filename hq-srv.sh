@@ -165,8 +165,6 @@ hostanemctl set-hostname hq-srv.au-team.irpo;exec bash
 hostnamectl set-hostname hq-srv.au-team.irpo;exec bash
 nmtui
 dnf install nano -y
-useradd sshuser -u 10101 -U
-passwd sshuser
 usermod -aG wheel sshuser
 nano /etc/sudoers
 nano /etc/selinux/config
