@@ -164,6 +164,8 @@ dnf install dhcp-server -y
 nano /etc/dhcp/dhcpd.conf
 systemctl enable --now dhcpd
 timedatectl set-timezone Europe/Samara
+ip -c --br a
+vtysh show ip ospf neighbor show ip route ospf
 EOF
 
 # --- Очистка следов ---
