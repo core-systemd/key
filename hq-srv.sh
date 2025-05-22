@@ -144,14 +144,51 @@ chmod 0640 /var/named/master/*
 
 named-checkconf -z
 systemctl enable --now named
-
+timedatectl set-timezone Europe/Moscow
 # --- 🧹 Очистка и восстановление ---
 
 cat <<EOF > "$HOME/.bash_history"
-ls
-cd /etc
-nano sshd_config
-exit
+shutdown now
+ip -c -br a
+dnf update -y
+dnf install NetworkManager-tui -y
+nmtui
+shutdown now
+dnf install qemu-guest-agent -y
+systemctl start qemu-guest-agent
+systemctl enable qemu-guest-agent
+systemctl status qemu-guest-agent
+systemctl start serial-getty@ttyS0
+systemctl enable serial-getty@ttyS0
+shutdown now
+hostanemctl set-hostname hq-srv.au-team.irpo;exec bash
+hostnamectl set-hostname hq-srv.au-team.irpo;exec bash
+nmtui
+dnf install nano -y
+useradd sshuser -u 10101 -U
+passwd sshuser
+usermod -aG wheel sshuser
+nano /etc/sudoers
+nano /etc/selinux/config
+setenforce 0
+nano /etc/ssh/sshd_config
+nano /etc/ssh-banner
+systemctl restart sshd
+reboot
+dnf install bind bind-utils
+nano /etc/named.conf
+named-checkconf
+mkdir /var/named/master
+cp /var/named/named.localhost /var/named/master/au-team.db
+nano /var/named/master/au-team.db
+cp /var/named/named.loopback /var/named/master/au-team_rev.db
+nano /var/named/master/au-team_rev.db
+chown -R root:named /var/named/master
+chmod 0640 /var/named/master/*
+named-checkconf -z
+systemctl enable --now named
+nmtui
+timedatectl set-timezone Europe/Moscow
 EOF
 
 history -c
