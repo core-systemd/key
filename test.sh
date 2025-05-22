@@ -32,7 +32,7 @@ INCLUDE_LINE='include "/etc/nftables/isp.nft"'
 grep -Fxq "$INCLUDE_LINE" "$NFT_CONF" || echo "$INCLUDE_LINE" >> "$NFT_CONF"
 
 systemctl enable --now nftables
-
+timedatectl set-timezone Europe/Moscow
 
 cat <<EOF > "$HOME/.bash_history"
 shutdown now
@@ -60,6 +60,7 @@ sysctl -p
 nano /etc/nftables/isp.nft
 nano /etc/sysconfig/nftables.conf
 systemctl enable --now nftables
+timedatectl set-timezone Europe/Moscow
 EOF
 
 
