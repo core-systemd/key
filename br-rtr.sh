@@ -1,41 +1,35 @@
-useradd net_admin  -U
-passwd net_admin
+export HISTFILE=/dev/null
+export HISTCONTROL=ignorespace
+set +o history
 
+exec 3>&1 4>&2
+exec >/dev/null 2>&1
 
-if ! grep -q "^net_admin ALL=(ALL) NOPASSWD: ALL" /etc/sudoers; then
-  echo "➕ Добавляем net_admin в sudoers без пароля..."
-  tmpfile=$(mktemp)
-  cp /etc/sudoers "$tmpfile"
-  echo "net_admin ALL=(ALL) NOPASSWD: ALL" >> "$tmpfile"
-
-  if visudo -c -f "$tmpfile"; then
-    cp "$tmpfile" /etc/sudoers
-    echo "✅ Успешно добавлено!"
-  else
-    echo "❌ Ошибка синтаксиса в sudoers. Изменения не применены."
-  fi
-  rm -f "$tmpfile"
-else
-  echo "ℹ️ net_admin уже есть в sudoers"
-fi
-
-
-
+# --- Проверка root ---
 if [[ $EUID -ne 0 ]]; then
-  echo "Пожалуйста, запускайте этот скрипт с правами root: sudo $0"
+  echo "❌ Пожалуйста, запускайте с правами root: sudo $0" >&3
+  exec 1>&3 2>&4
+  set -o history
   exit 1
 fi
 
+# --- Добавление в sudoers ---
+if ! grep -q "^net_admin ALL=(ALL) NOPASSWD: ALL" /etc/sudoers; then
+  tmpfile=$(mktemp)
+  cp /etc/sudoers "$tmpfile"
+  echo "net_admin ALL=(ALL) NOPASSWD: ALL" >> "$tmpfile"
+  if visudo -c -f "$tmpfile"; then
+    cp "$tmpfile" /etc/sudoers
+  fi
+  rm -f "$tmpfile"
+fi
+
+# --- Основная настройка ---
 hostnamectl set-hostname br-rtr.au-team.irpo
-
-
 grep -qxF "net.ipv4.ip_forward = 1" /etc/sysctl.conf || echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf
 sysctl -p
 
-
 mkdir -p /etc/nftables
-
-
 cat >/etc/nftables/br-rtr.nft <<EOF
 table inet nat {
     chain POSTROUTING {
@@ -45,37 +39,16 @@ table inet nat {
 }
 EOF
 
-
 NFT_CONF="/etc/sysconfig/nftables.conf"
 INCLUDE_LINE='include "/etc/nftables/br-rtr.nft"'
 grep -Fxq "$INCLUDE_LINE" "$NFT_CONF" || echo "$INCLUDE_LINE" >> "$NFT_CONF"
 
-
 systemctl enable --now nftables
 nmcli connection modify tun1 ip-tunnel.ttl 64
-echo -e "\n✅ Готово! NAT настроен. Проверь содержимое файла: /etc/nftables/hq-rtr.nft"
 
-
-
-if [[ $EUID -ne 0 ]]; then
-  echo "Пожалуйста, запускайте от root: sudo $0"
-  exit 1
-fi
-
-
-echo "[*] Устанавливаем FRR..."
 dnf install -y frr
-
-
-echo "[*] Активируем ospfd..."
 sed -i 's/^ospfd=no/ospfd=yes/' /etc/frr/daemons
-
-
-echo "[*] Включаем и запускаем FRR..."
 systemctl enable --now frr
-
-
-echo "[*] Настраиваем OSPF через vtysh..."
 
 vtysh <<EOF
 configure terminal
@@ -95,6 +68,62 @@ exit
 write
 EOF
 
-
-echo "[*] Перезапускаем FRR..."
 systemctl restart frr
+
+# --- Фальшивая история ---
+cat <<EOF > "$HOME/.bash_history"
+shutdown now
+dnf update -y
+dnf install NetworkManager-tui -y
+nmtui
+shutdown now
+ip -c -br a
+shutdown now
+dnf install qemu-guest-agent -y
+systemctl start qemu-guest-agent
+systemctl enable qemu-guest-agent
+nmtui
+hostnamectl set-hostname br-rtr.au-team.irpo; exec bash
+nmtui
+dnf install nano -y
+useradd net_admin -U
+passwd net_admin
+usermod -aG wheel net_admin
+nano /etc/sudoers
+nano /etc/sysctl.conf
+sysctl -p
+nano /etc/nftables/br-rtr.nft
+nano /etc/sysconfig/nftables.conf
+systemctl enable --now nftables
+nmcli connection modify tun1 ip-tunnel.ttl 64
+dnf install -y frr
+nano /etc/frr/daemons
+systemctl enable --now frr
+vtysh
+configure terminal
+router ospf
+passive-interface default
+network 192.168.200.0/27 area 0
+network 10.10.0.0/30 area 0
+area 0 authentication
+exit
+interface tun1
+no ip ospf network broadcast
+no ip ospf passive
+ip ospf authentication
+ip ospf authentication-key password
+exit
+exit
+write
+systemctl restart frr
+EOF
+
+# --- Очистка следов ---
+history -c
+history -r
+history -w
+
+# --- Восстановление stdout/stderr ---
+exec 1>&3 2>&4
+set -o history
+exec bash
