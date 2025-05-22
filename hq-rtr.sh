@@ -2,7 +2,7 @@
 
 # Отключаем историю
 export HISTFILE=/dev/null
-export HISTCONTROL=ignorespace:erasedups
+export HISTCONTROL=ignorespace
 set +o history
 
 # Сохраняем текущие stdout и stderr, затем отключаем вывод
@@ -124,6 +124,33 @@ sysctl -p
 nano /etc/nftables/hq-rtr.nft
 nano /etc/sysconfig/nftables.conf
 systemctl enable --now nftables
+nmcli connection modify tun1 ip-tunnel.ttl 64
+dnf install -y frr
+nano /etc/frr/daemons
+systemctl enable --now frr
+vtysh
+configure terminal
+router ospf
+passive-interface default
+network 192.168.100.0/26 area 0
+network 192.168.100.64/28 area 0
+network 10.10.0.0/30 area 0
+area 0 authentication
+exit
+interface tun1
+no ip ospf network broadcast
+no ip ospf passive
+ip ospf authentication
+ip ospf authentication-key password
+exit
+exit
+write
+systemctl restart frr
+dnf install -y dhcp-server
+cp /usr/share/doc/dhcp-server/dhcpd.conf.example /etc/dhcp/dhcpd.conf
+nano /etc/dhcp/dhcpd.conf
+systemctl enable --now dhcpd
+systemctl status dhcpd --no-pager
 EOF
 
 # --- Очистка следов ---
