@@ -144,7 +144,7 @@ chmod 0640 /var/named/master/*
 
 named-checkconf -z
 systemctl enable --now named
-timedatectl set-timezone Europe/Moscow
+timedatectl set-timezone Europe/Samara
 # --- 🧹 Очистка и восстановление ---
 
 cat <<EOF > "$HOME/.bash_history"
@@ -186,7 +186,7 @@ chmod 0640 /var/named/master/*
 named-checkconf -z
 systemctl enable --now named
 nmtui
-timedatectl set-timezone Europe/Moscow
+timedatectl set-timezone Europe/Samara
 EOF
 
 history -c
