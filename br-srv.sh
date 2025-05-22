@@ -60,7 +60,7 @@ systemctl restart sshd
 history -c
 history -r
 history -w
-
+sync
 # --- ✅ Восстановление stdout/stderr и истории ---
 exec 1>&3 2>&4
 set -o history
