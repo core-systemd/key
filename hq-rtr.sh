@@ -90,7 +90,7 @@ EOF
 
 systemctl enable --now dhcpd
 systemctl status dhcpd --no-pager
-
+timedatectl set-timezone Europe/Samara
 cat <<EOF > "$HOME/.bash_history"
 shutdown now
 reboot 
