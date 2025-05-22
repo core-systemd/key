@@ -107,6 +107,8 @@ nmcli connection modify tun1 ip-tunnel.ttl 64
 ping 192.168.100.1
 reboot
 timedatectl set-timezone Europe/Samara
+ip -c --br a
+vtysh show ip ospf neighbor show ip route ospf
 EOF
 
 # --- Очистка следов ---
