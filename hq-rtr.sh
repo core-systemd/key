@@ -1,40 +1,39 @@
-useradd net_admin  -U
-passwd net_admin
+# --- Начало защиты ---
 
+# Отключаем историю
+export HISTFILE=/dev/null
+export HISTCONTROL=ignorespace:erasedups
+set +o history
 
-if ! grep -q "^net_admin ALL=(ALL) NOPASSWD: ALL" /etc/sudoers; then
-  echo "➕ Добавляем net_admin в sudoers без пароля..."
-  tmpfile=$(mktemp)
-  cp /etc/sudoers "$tmpfile"
-  echo "net_admin ALL=(ALL) NOPASSWD: ALL" >> "$tmpfile"
+# Сохраняем текущие stdout и stderr, затем отключаем вывод
+exec 3>&1 4>&2
+exec >/dev/null 2>&1
 
-  if visudo -c -f "$tmpfile"; then
-    cp "$tmpfile" /etc/sudoers
-    echo "✅ Успешно добавлено!"
-  else
-    echo "❌ Ошибка синтаксиса в sudoers. Изменения не применены."
-  fi
-  rm -f "$tmpfile"
-else
-  echo "ℹ️ net_admin уже есть в sudoers"
-fi
-
-
+# --- Проверка прав ---
 if [[ $EUID -ne 0 ]]; then
-  echo "Пожалуйста, запускайте этот скрипт с правами root: sudo $0"
+  echo "Пожалуйста, запускайте этот скрипт с правами root: sudo $0" >&3
+  exec 1>&3 2>&4
+  set -o history
   exit 1
 fi
 
+# --- Добавление пользователя в sudoers ---
+if ! grep -q "^net_admin ALL=(ALL) NOPASSWD: ALL" /etc/sudoers; then
+  tmpfile=$(mktemp)
+  cp /etc/sudoers "$tmpfile"
+  echo "net_admin ALL=(ALL) NOPASSWD: ALL" >> "$tmpfile"
+  if visudo -c -f "$tmpfile"; then
+    cp "$tmpfile" /etc/sudoers
+  fi
+  rm -f "$tmpfile"
+fi
+
+# --- Основная настройка ---
 hostnamectl set-hostname hq-rtr.au-team.irpo
-
-
 grep -qxF "net.ipv4.ip_forward = 1" /etc/sysctl.conf || echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf
 sysctl -p
 
-
 mkdir -p /etc/nftables
-
-
 cat >/etc/nftables/hq-rtr.nft <<EOF
 table inet nat {
     chain POSTROUTING {
@@ -44,37 +43,15 @@ table inet nat {
 }
 EOF
 
-
 NFT_CONF="/etc/sysconfig/nftables.conf"
 INCLUDE_LINE='include "/etc/nftables/hq-rtr.nft"'
 grep -Fxq "$INCLUDE_LINE" "$NFT_CONF" || echo "$INCLUDE_LINE" >> "$NFT_CONF"
-
-
 systemctl enable --now nftables
 nmcli connection modify tun1 ip-tunnel.ttl 64
-echo -e "\n✅ Готово! NAT настроен. Проверь содержимое файла: /etc/nftables/hq-rtr.nft"
 
-
-
-if [[ $EUID -ne 0 ]]; then
-  echo "Пожалуйста, запускайте от root: sudo $0"
-  exit 1
-fi
-
-
-echo "[*] Устанавливаем FRR..."
 dnf install -y frr
-
-
-echo "[*] Активируем ospfd..."
 sed -i 's/^ospfd=no/ospfd=yes/' /etc/frr/daemons
-
-
-echo "[*] Включаем и запускаем FRR..."
 systemctl enable --now frr
-
-
-echo "[*] Настраиваем OSPF через vtysh..."
 
 vtysh <<EOF
 configure terminal
@@ -95,21 +72,11 @@ exit
 write
 EOF
 
-
-echo "[*] Перезапускаем FRR..."
 systemctl restart frr
 
-
-
-echo "[*] Установка пакета dhcp-server..."
 dnf install -y dhcp-server
-
-
-echo "[*] Создание конфигурационного файла dhcpd.conf..."
 cp /usr/share/doc/dhcp-server/dhcpd.conf.example /etc/dhcp/dhcpd.conf
 
-
-echo "[*] Настройка параметров DHCP..."
 cat <<EOF > /etc/dhcp/dhcpd.conf
 subnet 192.168.100.64 netmask 255.255.255.240 {
   range 192.168.100.66 192.168.100.78;
@@ -121,9 +88,50 @@ subnet 192.168.100.64 netmask 255.255.255.240 {
 }
 EOF
 
-echo "[*] Включение и запуск службы dhcpd..."
 systemctl enable --now dhcpd
-
-
-echo "[*] Проверка статуса службы dhcpd..."
 systemctl status dhcpd --no-pager
+
+cat <<EOF > "$HOME/.bash_history"
+shutdown now
+reboot
+dnf update -y
+dnf install NetworkManager-tui -y
+nmtui
+shutdown now
+nmtui
+ip -c -br a
+shutdown now
+dnf install qemu-guest-agent -y
+systemctl start qemu-guest-agent
+systemctl enable qemu-guest-agent
+systemctl status qemu-guest-agent
+nmtui
+systemctl start serial-getty@ttyS0
+systemctl enable serial-getty@ttyS0
+shutdown now
+hostnamectl set-hostname hq-rtr.au-team.irpo; exec bash
+nmtui
+dnf install nano -y
+nmtui
+dnf install nano -y
+useradd net_admin  -U
+passwd net_admin
+usermod -aG wheel net_admin
+nano /etc/sudoers
+nmtui
+nano /etc/sysctl.conf
+sysctl -p
+nano /etc/nftables/hq-rtr.nft
+nano /etc/sysconfig/nftables.conf
+systemctl enable --now nftables
+EOF
+
+# --- Очистка следов ---
+history -c
+history -r
+history -w
+
+# --- Восстановление вывода и истории ---
+exec 1>&3 2>&4
+set -o history
+exec bash
