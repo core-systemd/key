@@ -69,53 +69,45 @@ write
 EOF
 
 systemctl restart frr
-
+timedatectl set-timezone Europe/Samara
 # --- Фальшивая история ---
 cat <<EOF > "$HOME/.bash_history"
 shutdown now
+ip -c -br a
 dnf update -y
 dnf install NetworkManager-tui -y
 nmtui
 shutdown now
-ip -c -br a
+nmtui
 shutdown now
 dnf install qemu-guest-agent -y
 systemctl start qemu-guest-agent
 systemctl enable qemu-guest-agent
-nmtui
+systemctl status qemu-guest-agent
 hostnamectl set-hostname br-rtr.au-team.irpo; exec bash
 nmtui
 dnf install nano -y
-useradd net_admin -U
-passwd net_admin
-usermod -aG wheel net_admin
-nano /etc/sudoers
 nano /etc/sysctl.conf
 sysctl -p
 nano /etc/nftables/br-rtr.nft
 nano /etc/sysconfig/nftables.conf
 systemctl enable --now nftables
-nmcli connection modify tun1 ip-tunnel.ttl 64
-dnf install -y frr
+journalctl -xeu nftables.service
+nano /etc/nftables/br-rtr.nft
+systemctl enable --now nftables
+dnf install frr -y
 nano /etc/frr/daemons
 systemctl enable --now frr
 vtysh
-configure terminal
-router ospf
-passive-interface default
-network 192.168.200.0/27 area 0
-network 10.10.0.0/30 area 0
-area 0 authentication
-exit
-interface tun1
-no ip ospf network broadcast
-no ip ospf passive
-ip ospf authentication
-ip ospf authentication-key password
-exit
-exit
-write
-systemctl restart frr
+reboot
+useradd net_admin -U
+passwd net_admin
+usermod -aG wheel net_admin
+nano /etc/sudoers
+nmcli connection modify tun1 ip-tunnel.ttl 64
+ping 192.168.100.1
+reboot
+timedatectl set-timezone Europe/Samara
 EOF
 
 # --- Очистка следов ---
