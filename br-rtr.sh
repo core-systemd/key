@@ -68,7 +68,6 @@ exit
 write
 EOF
 
-systemctl restart frr
 timedatectl set-timezone Europe/Samara
 # --- Фальшивая история ---
 cat <<EOF > "$HOME/.bash_history"
