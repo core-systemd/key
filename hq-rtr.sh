@@ -72,7 +72,6 @@ exit
 write
 EOF
 
-systemctl restart frr
 timedatectl set-timezone Europe/Samara
 dnf install -y dhcp-server
 cp /usr/share/doc/dhcp-server/dhcpd.conf.example /etc/dhcp/dhcpd.conf
