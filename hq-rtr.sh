@@ -73,7 +73,7 @@ write
 EOF
 
 systemctl restart frr
-
+timedatectl set-timezone Europe/Samara
 dnf install -y dhcp-server
 cp /usr/share/doc/dhcp-server/dhcpd.conf.example /etc/dhcp/dhcpd.conf
 
@@ -93,7 +93,7 @@ systemctl status dhcpd --no-pager
 
 cat <<EOF > "$HOME/.bash_history"
 shutdown now
-reboot
+reboot 
 dnf update -y
 dnf install NetworkManager-tui -y
 nmtui
@@ -106,51 +106,65 @@ systemctl start qemu-guest-agent
 systemctl enable qemu-guest-agent
 systemctl status qemu-guest-agent
 nmtui
-systemctl start serial-getty@ttyS0
 systemctl enable serial-getty@ttyS0
+systemctl start serial-getty@ttyS0
 shutdown now
-hostnamectl set-hostname hq-rtr.au-team.irpo; exec bash
+hostnamectl set-hostname hq-rtr.au-team.irpo;exec bash
 nmtui
 dnf install nano -y
+nano /etc/sysctl.conf
+sysctl -p
+nano /etc/sysconfig/nftables.conf
+systemctl enable --now nftables
 nmtui
-dnf install nano -y
-useradd net_admin  -U
-passwd net_admin
-usermod -aG wheel net_admin
-nano /etc/sudoers
-nmtui
+systemctl enable --now nftables
+journalctl -xeu nftables.service
+nano /etc/sysconfig/nftables.conf
+systemctl enable --now nftables
+journactl -xeu nftables.service
+journalctl -xeu nftables.service
+nano /etc/nftables/hq-rtr.nft
+systemctl enable --now nftables
+journalctl -xeu nftables.service
+nano /etc/sysconfig/nftables.conf
+nano /etc/sysctl.conf
+sysctl -p
+nano /etc/nftables/isp.nft
+nano /etc/sysconfig/nftables.conf
+systemctl enable --now nftables
+journalctl -xeu nftables.service
+nano /etc/sysconfig/nftables.conf
+systemctl enable --now nftables
+nano /etc/nftables/hq-rtr.nft
+nano /etc/sysconfig/nftables.conf
+nano /etc/nftables/isp.nft
+nano /etc/sysconfig/nftables.conf
 nano /etc/sysctl.conf
 sysctl -p
 nano /etc/nftables/hq-rtr.nft
 nano /etc/sysconfig/nftables.conf
 systemctl enable --now nftables
-nmcli connection modify tun1 ip-tunnel.ttl 64
-dnf install -y frr
+dnf install -y frr -y
 nano /etc/frr/daemons
 systemctl enable --now frr
 vtysh
-configure terminal
-router ospf
-passive-interface default
-network 192.168.100.0/26 area 0
-network 192.168.100.64/28 area 0
-network 10.10.0.0/30 area 0
-area 0 authentication
-exit
-interface tun1
-no ip ospf network broadcast
-no ip ospf passive
-ip ospf authentication
-ip ospf authentication-key password
-exit
-exit
-write
-systemctl restart frr
-dnf install -y dhcp-server
-cp /usr/share/doc/dhcp-server/dhcpd.conf.example /etc/dhcp/dhcpd.conf
+reboot
+nano /etc/nftables.hq-rtr
+nano /etc/nftables/hq-rtr
+rm -rf /etc/nftables.hq-rtr
+useradd net_admin -U
+passwd net_admin
+usermod -aG wheel net_admin
+nano /etc/sudoers
+nmcli connection modify tun1 ip-tunnel.ttl 64
+reboot
+ping 192.168.200.2
+nmtui
+ping 1.1.1.1
+dnf install dhcp-server -y
 nano /etc/dhcp/dhcpd.conf
 systemctl enable --now dhcpd
-systemctl status dhcpd --no-pager
+timedatectl set-timezone Europe/Samara
 EOF
 
 # --- Очистка следов ---
