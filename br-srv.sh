@@ -53,6 +53,22 @@ sed -i 's|^#Banner.*|Banner /etc/ssh-banner|' "$SSH_CONFIG"
 echo "Authorized access only" > /etc/ssh-banner
 
 systemctl restart sshd
+cat > /etc/ansible/hosts << 'EOF'
+[hq]
+192.168.100.2 ansible_port=2024 ansible_user=sshuser
+192.168.100.66 ansible_user=user
+172.16.4.2 ansible_user=net_admin
+
+[br]
+172.16.5.2 ansible_user=net_admin
+EOF
+
+cat > /etc/ansible/ansible.cfg << 'EOF'
+[defaults]
+
+interpreter_python=auto_silent
+EOF
+
 timedatectl set-timezone Europe/Samara
 # --- 🧹 Очистка и финал ---
 cat <<EOF > "$HOME/.bash_history"
@@ -102,6 +118,13 @@ ping hq-cli.au-team.irpo
 ping hq-rtr.au-team.irpo
 ping br-rtr.au-team.irpo
 timedatectl set-timezone Europe/Samara
+dnf install ansible -y
+su sshuser
+ssh-keygen -t rsa
+ssh-copy-id -p sshuser@192.168.100.2
+nano /etc/ansible/hosts
+nano /etc/ansible/ansible.cfg
+ansible all -m ping
 EOF
 
 history -c
