@@ -36,6 +36,10 @@ sysctl -p
 mkdir -p /etc/nftables
 cat >/etc/nftables/hq-rtr.nft <<EOF
 table inet nat {
+    chain PREROUTING {
+        type nat hook prerouting priority filter;
+        ip daddr 172.16.5.2 tcp dport 80 dnat ip to 192.168.200.2:8080
+        }
     chain POSTROUTING {
         type nat hook postrouting priority srcnat;
         oifname "ens18" masquerade
