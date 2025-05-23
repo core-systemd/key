@@ -37,12 +37,12 @@ mkdir -p /etc/nftables
 cat >/etc/nftables/hq-rtr.nft <<EOF
 table inet nat {
     chain PREROUTING {
-        type nat hook prerouting priority filter;
-        ip daddr 172.16.4.2 tcp dport 2024 dnat ip to 192.168.100.2:2024
-        }
+    type nat hook prerouting priority filter;
+    ip daddr 172.16.4.2 tcp dport 2024 dnat ip to 192.168.100.2:2024
+    }
     chain POSTROUTING {
-        type nat hook postrouting priority srcnat;
-        oifname "ens18" masquerade
+    type nat hook postrouting priority srcnat;
+    oifname "ens18" masquerade
     }
 }
 EOF
