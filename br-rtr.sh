@@ -35,6 +35,7 @@ table inet nat {
     chain PREROUTING {
         type nat hook prerouting priority filter;
         ip daddr 172.16.5.2 tcp dport 80 dnat ip to 192.168.200.2:8080
+        ip daddr 172.16.5.2 tcp dport 2024 dnat ip to 192.168.200.2:2024
         }
     chain POSTROUTING {
         type nat hook postrouting priority srcnat;
