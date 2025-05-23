@@ -140,7 +140,6 @@ logdir /var/log/chrony
 
 # Select which information is logged.
 #log measurements statistics tracking
-}
 EOF
 systemctl restart chronyd
 systemctl enable --now  chronyd
