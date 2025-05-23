@@ -53,21 +53,18 @@ sed -i 's|^#Banner.*|Banner /etc/ssh-banner|' "$SSH_CONFIG"
 echo "Authorized access only" > /etc/ssh-banner
 
 systemctl restart sshd
-tee /etc/ansible/hosts.tmp > /dev/null <<'EOF'
+
+cat <<EOF > /etc/ansible/hosts
 [hq]
 192.168.100.2 ansible_port=2024 ansible_user=sshuser
 192.168.100.66 ansible_user=user
 172.16.4.2 ansible_user=net_admin
 
+[br]
+172.16.5.2 ansible_user=net_admin
 EOF
 
-# Добавим остальную часть старого файла
-cat /etc/ansible/hosts >> /etc/ansible/hosts.tmp
-
-# Перезапишем оригинал
-mv /etc/ansible/hosts.tmp /etc/ansible/hosts
-
-tee /etc/ansible/ansible.cfg > /dev/null << 'EOF'
+cat <<EOF > /etc/ansible/ansible.cfg
 [defaults]
 
 interpreter_python=auto_silent
